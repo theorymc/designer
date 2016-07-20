@@ -2,6 +2,14 @@
 <html>
     <head>
         <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+
             .object {
                 position: absolute;
                 transform-style: preserve-3d;
@@ -16,8 +24,8 @@
                 width: 640px;
                 height: 640px;
                 /*outline: 1px solid rgba(0, 0, 0, 0.3);
-                background: rgba(0, 0, 0, 0.1);*/
-                backface-visibility: visible;
+                background: rgba(0, 0, 0, 0.1);
+                backface-visibility: visible;*/
                 transform: rotateX(60deg) rotateY(0) rotateZ(60deg);
                 box-sizing: border-box;
             }
@@ -34,12 +42,22 @@
                 outline: 1px solid rgba(0, 0, 0, 0.3);
                 backface-visibility: hidden;
             }
+
+            .ghost {
+                pointer-events: none;
+            }
+
+            .ghost .face {
+                opacity: 0.6;
+                background-color: red !important;
+                -webkit-filter: brightness(1.5);
+            }
         </style>
     </head>
     <body class="selection">
-        <input type="number" class="rotate-x" value="60" />
-        <input type="number" class="rotate-y" value="0" />
-        <input type="number" class="rotate-z" value="60" />
+        <input type="number" class="rotate-x" value="60" min="0" max="360" />
+        <input type="number" class="rotate-y" value="0" min="0" max="360" />
+        <input type="number" class="rotate-z" value="60" min="0" max="360" />
         <script src="jquery.js"></script>
         <script>
             Array.prototype.random = function() {
@@ -132,7 +150,7 @@
                 }
 
                 face.css({
-                    "background": "url(" + texture + ") 0px 0px",
+                    "background-image": "url(" + texture + ")",
                     "width": unit.toInt() + "px",
                     "height": unit.toInt() + "px",
                     "marginTop": "-" + (unit / 2).toInt() + "px",
@@ -160,37 +178,136 @@
                 var side = $(this).data("side");
                 var previous = $(this).closest(".block").data("block");
 
-                console.log(side);
+                if (!previous) {
+                    return;
+                }
+
+                var x = previous.x;
+                var y = previous.y;
+                var z = previous.z;
 
                 if (side == "top") {
-                    var next = new Block(previous.x, previous.y, previous.z + 1);
-                    surface.append(next.element);
+                    z += 1;
                 }
 
                 if (side == "side-1") {
-                    var next = new Block(previous.x, previous.y + 1, previous.z);
-                    surface.append(next.element);
+                    y += 1;
                 }
 
                 if (side == "side-2") {
-                    var next = new Block(previous.x, previous.y - 1, previous.z);
-                    surface.append(next.element);
+                    y -= 1;
                 }
 
                 if (side == "side-3") {
-                    var next = new Block(previous.x + 1, previous.y, previous.z);
-                    surface.append(next.element);
+                    x += 1;
                 }
 
                 if (side == "side-4") {
-                    var next = new Block(previous.x - 1, previous.y, previous.z);
-                    surface.append(next.element);
+                    x -= 1;
                 }
 
                 if (side == "bottom") {
-                    var next = new Block(previous.x, previous.y, previous.z - 1);
-                    surface.append(next.element);
+                    z -= 1;
                 }
+
+                var next = new Block(x, y, z);
+                surface.append(next.element);
+            });
+
+            var ghost = null;
+
+            $(document.body).on("mouseenter", ".face", function(e) {
+                if (ghost) {
+                    ghost.element.remove();
+                    ghost = null;
+                }
+
+                var side = $(this).data("side");
+                var previous = $(this).closest(".block").data("block");
+
+                if (!previous) {
+                    return;
+                }
+
+                var x = previous.x;
+                var y = previous.y;
+                var z = previous.z;
+
+                if (side == "top") {
+                    z += 1;
+                }
+
+                if (side == "side-1") {
+                    y += 1;
+                }
+
+                if (side == "side-2") {
+                    y -= 1;
+                }
+
+                if (side == "side-3") {
+                    x += 1;
+                }
+
+                if (side == "side-4") {
+                    x -= 1;
+                }
+
+                if (side == "bottom") {
+                    z -= 1;
+                }
+
+                var next = new Block(x, y, z);
+                surface.append(next.element);
+
+                next.element.addClass("ghost");
+                ghost = next;
+            });
+
+            $(document.body).on("mouseleave", ".face", function(e) {
+                if (ghost) {
+                    ghost.element.remove();
+                    ghost = null;
+                }
+            });
+
+            var cx = null;
+
+            $(document.body).on("mousedown", function(e) {
+                cx = e.clientX / 10;
+            });
+
+            $(document.body).on("mousemove", function(e) {
+                if (!cx) {
+                    return;
+                }
+
+                var next = e.clientX / 10;
+
+                if (next !== cx) {
+                    dx = (next.toInt() - cx.toInt()).toInt();
+                    deg = parseInt($(".rotate-z").val(), 10) - dx;
+
+                    if (deg > 360) {
+                        deg -= 360;
+                    }
+
+                    if (deg < 0) {
+                        deg += 360;
+                    }
+
+                    $(".rotate-z").val(deg).change();
+
+                    cx = next;
+                }
+            });
+
+            $(document.body).on("mouseup", function(e) {
+                cx = null;
+            });
+
+            $(document.body).on("click", function(e) {
+                cx = null;
             });
 
             var sx = 60;
