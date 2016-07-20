@@ -4,50 +4,49 @@
         <style>
             .object {
                 position: absolute;
-                left: 50%;
-                top: 50%;
                 transform-style: preserve-3d;
                 transform-origin: 50% 50% 50%;
-                backface-visibility: hidden;
             }
 
             .surface {
-                margin-top: -250px;
-                margin-left: -250px;
-                width: 500px;
-                height: 500px;
-                /*border: solid 2px rgba(0, 0, 0, 0.3);
-                background: rgba(0, 0, 0, 0.2);*/
+                left: 50%;
+                top: 50%;
+                margin-top: -320px;
+                margin-left: -320px;
+                width: 640px;
+                height: 640px;
+                outline: 1px solid rgba(0, 0, 0, 0.3);
+                background: rgba(0, 0, 0, 0.1);
                 backface-visibility: visible;
                 transform: rotateX(60deg) rotateY(0) rotateZ(60deg);
+                box-sizing: border-box;
             }
 
-            /* DEBUG ↓ */
+            .block {
+                transform-origin: 0 0 0;
+            }
+
+            .block:hover .face {
+                outline: 1px solid rgba(255, 0, 0, 1);
+            }
 
             .face {
-                outline: 1px solid #000;
-                background: #DDD !important;
-                backface-visibility: visible;
+                outline: 1px solid rgba(0, 0, 0, 0.3);
             }
-
-            /*.face {
-                border: solid 1px transparent;
-                box-sizing: border-box;
-            }*/
-
-            /*.tile {
-                background: red !important;
-            }*/
-
-            /*.block:hover .face {
-                border: solid 1px red !important;
-            }*/
         </style>
     </head>
-    <body>
+    <body class="selection">
+        <input type="number" class="rotate-x" value="60" />
+        <input type="number" class="rotate-y" value="0" />
+        <input type="number" class="rotate-z" value="60" />
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
         <script>
             Array.prototype.random = function() {
                 return this[Math.floor(Math.random() * this.length)];
+            };
+
+            Number.prototype.toInt = function() {
+                return parseInt(this, 10);
             };
 
             var grid = 64;
@@ -79,12 +78,11 @@
                 this.rx = rx || 0;
                 this.ry = ry || 0;
                 this.rz = rz || 0;
-
                 this.type = type || "dirt";
 
                 this.ox = 0;
                 this.oy = 0;
-                this.oz = 32;
+                this.oz = 0;
                 this.orx = 0;
                 this.ory = 0;
                 this.orz = 0;
@@ -94,157 +92,139 @@
             }
 
             Block.prototype.update = function() {
-                var x = this.x + this.ox;
-                var y = this.y + this.oy;
-                var z = this.z + this.oz;
+                var x = (this.x * grid) + this.ox;
+                var y = (this.y * grid) + this.oy;
+                var z = (this.z * grid) + this.oz;
 
                 var rx = this.rx + this.orx;
                 var ry = this.ry + this.ory;
                 var rz = this.rz + this.orz;
 
-                var styles = "transform: translate3d(" + x + "px, " + y + "px, " + z + "px) rotate3d(" + rx + "deg, " + ry + "deg, " + rz + "deg); ";
-
-                console.log("element styles", styles);
-
-                this.element.style.cssText = styles;
+                this.element.css({
+                    "width": grid + "px",
+                    "height": grid + "px",
+                    "left": (x + (grid / 2)) + "px",
+                    "top": (y + (grid / 2)) + "px",
+                    "transform": "translateZ(" + (z + (grid / 2)) + "px) rotateX(" + rx + "deg) rotateY(" + ry + "deg) rotateZ(" + rz + "deg) scale(0.99)"
+                });
             };
 
             Block.prototype.createElement = function() {
-                var element = document.createElement("div");
+                var element = $("<div />");
 
-                element.className = "object block";
+                element.data("block", this);
+                element.addClass("object");
+                element.addClass("block");
 
-                element.appendChild(this.createElementFace(textures.top.random(), 64, 0, 32, 0, 0, 0, 0));
-                element.appendChild(this.createElementFace(textures.top.random(), 64, 0, -32, 0, 0, 0, 0));
+                element.append(this.createElementFace(textures.top.random(), grid, 0, 0, grid / 2, 0, 0, 0).data("side", "top"));
+                element.append(this.createElementFace(textures.side.random(), grid, 0, grid / 2, 0, 270, 0, 0).data("side", "side-1"));
+                element.append(this.createElementFace(textures.side.random(), grid, 0, grid / -2, 0, 90, 0, 0).data("side", "side-2"));
+                element.append(this.createElementFace(textures.side.random(), grid, grid / 2, 0, 0, 0, 90, 0).data("side", "side-3"));
+                element.append(this.createElementFace(textures.side.random(), grid, grid / -2, 0, 0, 0, 270, 0).data("side", "side-4"));
+                element.append(this.createElementFace(textures.top.random(), grid, 0, 0, grid / -2, 180, 0, 0).data("side", "bottom"));
 
                 return element;
             };
 
-            Block.prototype.createElementFace = function(t, u, x, y, z, rx, ry, rz) {
-                var face = document.createElement("div");
+            Block.prototype.createElementFace = function(texture, unit, x, y, z, rx, ry, rz, additional) {
+                var face = $("<div />");
 
-                face.className = "object face";
+                face.addClass("object");
+                face.addClass("face");
 
-                var styles =
-                    "background: url(" + t + ") 0px 0px; " +
-                    "width: " + parseInt(u, 10) + "px; " +
-                    "height: " + parseInt(u, 10) + "px; " +
-                    "marginTop: -" + parseInt(u / 2, 10) + "px; " +
-                    "marginLeft: -" + parseInt(u / 2, 10) + "px; " +
-                    "transform: translate3d(" + parseInt(x, 10) + "px, " + parseInt(y, 10) + "px, " + parseInt(z, 10) + "px) rotate3d(" + parseInt(rx, 10) + "deg, " + parseInt(ry, 10) + "deg, " + parseInt(rz, 10) + "deg); "
+                if (additional) {
+                    face.addClass(additional);
+                }
 
-                console.log("face styles", styles);
-
-                face.style.cssText = styles;
+                face.css({
+                    "background": "url(" + texture + ") 0px 0px",
+                    "width": unit.toInt() + "px",
+                    "height": unit.toInt() + "px",
+                    "marginTop": "-" + (unit / 2).toInt() + "px",
+                    "marginLeft": "-" + (unit / 2).toInt() + "px",
+                    "transform": "translateX(" + x.toInt() + "px) translateY(" + y.toInt() + "px) translateZ(" + z.toInt() + "px) rotateX(" + rx.toInt() + "deg) rotateY(" + ry.toInt() + "deg) rotateZ(" + rz.toInt() + "deg)"
+                });
 
                 return face;
             };
 
-            var block1 = new Block();
+            var surface = $("<div />");
+            surface.addClass("object");
+            surface.addClass("surface");
 
-            var surface = document.createElement("div");
-            surface.className = "object surface";
+            for (var x = 0; x < 10; x++) {
+                for (var y = 0; y < 10; y++) {
+                    var block = new Block(x, y, -1);
+                    surface.append(block.element);
+                }
+            }
 
-            surface.appendChild(block1.element);
+            $(document.body).append(surface);
 
-            document.body.appendChild(surface);
+            $(document.body).on("click", ".face", function(e) {
+                var side = $(this).data("side");
+                var previous = $(this).closest(".block").data("block");
 
-            // function createFace(w, h, x, y, z, rx, ry, rz, texture, className) {
-            //     var face = document.createElement("div");
-            //
-            //     face.className = "object face " + className;
-            //
-            //     face.style.cssText =
-            //         "background: url(" + texture + ") 0px 0px;" +
-            //         "width:" + w.toFixed(2) + "px;" +
-            //         "height:" + h.toFixed(2) + "px;" +
-            //         "margin-top: -" + (h / 2).toFixed(2) + "px;" +
-            //         "margin-left: -" + (w / 2).toFixed(2) + "px;" +
-            //         "transform: translate3d(" + x.toFixed(2) + "px," + y.toFixed(2) + "px," + z.toFixed(2) + "px)" +
-            //         "rotateX(" + rx.toFixed(2) + "rad) rotateY(" + ry.toFixed(2) + "rad) rotateY(" + rz.toFixed(2) + "rad);"
-            //
-            //     return face;
-            // }
-            //
-            // function createBlock(type) {
-            //     var textures = TEXTURES[type];
-            //
-            //     var block = document.createElement("div");
-            //     block.className = "object block";
-            //
-            //     block.appendChild(createFace(64, 64, 0, -32, 0, Math.PI / 2, 0, 0, textures.tops.random(), "top"));
-            //     block.appendChild(createFace(64, 64, 0, 32, 0, -Math.PI / 2, 0, 0, textures.tops.random(), "bottom"));
-            //     block.appendChild(createFace(64, 64, 32, 0, 0, 0, Math.PI / 2, 0, textures.sides.random(), "side-1"));
-            //     block.appendChild(createFace(64, 64, -32, 0, 0, 0, -Math.PI / 2, 0, textures.sides.random(), "side-2"));
-            //     block.appendChild(createFace(64, 64, 0, 0, 32, 0, 0, 0, textures.sides.random(), "side-3"));
-            //     block.appendChild(createFace(64, 64, 0, 0, -32, 0, Math.PI, 0, textures.sides.random(), "side-4"));
-            //
-            //     return block;
-            // }
-            //
-            // var surface = document.createElement("div");
-            // surface.className = "object surface";
-            //
-            // var block = createBlock("dirt");
-            //
-            // block.x = 0;
-            // block.y = 0;
-            // block.z = 32;
-            // block.rx = -90;
-            // block.ry = 0;
-            // block.rz = 0;
-            //
-            // block.style.cssText =
-            //     "transform:" +
-            //         "translate3d(" + block.x + "px, " + block.y + "px, " + block.z + "px)" +
-            //         "rotate3d(" + block.rx + "deg, " + block.ry + "deg, " + block.rz + "deg)";
-            //
-            // surface.appendChild(block);
-            //
-            // document.body.appendChild(surface);
-            //
-            // var startX = null;
-            // var startY = null;
-            // var dragging = false;
-            // var grid = 64;
-            //
-            // for (var x = 0; x < surface.offsetWidth; x += grid) {
-            //     for (var y = 0; y < surface.offsetHeight; y += grid) {
-            //         var tile = document.createElement("div");
-            //         tile.className = "object tile";
-            //         tile.style.cssText =
-            //             "top: " + y + "px;" +
-            //             "left: " + x + "px;" +
-            //             "transform: translate3d(0, 0, 1px)";
-            //
-            //             console.log(tile.style.cssText);
-            //
-            //         surface.appendChild(tile);
-            //     }
-            // }
-            //
-            // block.addEventListener("mousedown", function(e) {
-            //     startX = e.clientX;
-            //     startY = e.clientY;
-            //     dragging = true;
-            // });
-            //
-            // block.addEventListener("mouseup", function(e) {
-            //     dragging = false;
-            // });
-            //
-            // block.addEventListener("mousemove", function(e) {
-            //     if (!dragging) {
-            //         return;
-            //     }
-            //
-            //     // var newX = Math.round((startX - e.clientX) / grid) * grid;
-            //     // var newY = Math.round((startY - e.clientY) / grid) * grid;
-            //     //
-            //     // console.log(newX, newY);
-            //
-            //     block.style.cssText = "transform: translate3d(" + (block.x + e.clientX) + "px, " + (block.y + e.clientY) + "px, 32px)";
-            // });
+                console.log(side);
+
+                if (side == "top") {
+                    var next = new Block(previous.x, previous.y, previous.z + 1);
+                    surface.append(next.element);
+                }
+
+                if (side == "side-1") {
+                    var next = new Block(previous.x, previous.y + 1, previous.z);
+                    surface.append(next.element);
+                }
+
+                if (side == "side-2") {
+                    var next = new Block(previous.x, previous.y - 1, previous.z);
+                    surface.append(next.element);
+                }
+
+                if (side == "side-3") {
+                    var next = new Block(previous.x + 1, previous.y, previous.z);
+                    surface.append(next.element);
+                }
+
+                if (side == "side-4") {
+                    var next = new Block(previous.x - 1, previous.y, previous.z);
+                    surface.append(next.element);
+                }
+
+                if (side == "bottom") {
+                    var next = new Block(previous.x, previous.y, previous.z - 1);
+                    surface.append(next.element);
+                }
+            });
+
+            var sx = 60;
+            var sy = 0;
+            var sz = 60;
+
+            $(".rotate-x").on("change", function(e) {
+                sx = this.value;
+
+                surface.css({
+                    "transform": "rotateX(" + sx + "deg) rotateY(" + sy + "deg) rotateZ(" + sz + "deg)"
+                });
+            });
+
+            $(".rotate-y").on("change", function(e) {
+                sy = this.value;
+
+                surface.css({
+                    "transform": "rotateX(" + sx + "deg) rotateY(" + sy + "deg) rotateZ(" + sz + "deg)"
+                });
+            });
+
+            $(".rotate-z").on("change", function(e) {
+                sz = this.value;
+
+                surface.css({
+                    "transform": "rotateX(" + sx + "deg) rotateY(" + sy + "deg) rotateZ(" + sz + "deg)"
+                });
+            });
         </script>
     </body>
 </html>
