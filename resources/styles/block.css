@@ -1,0 +1,25 @@
+.block {
+    background: none;
+    pointer-events: none;
+}
+
+.face {
+    pointer-events: all;
+    outline: 1px solid rgba(0, 0, 0, 0.3);
+    backface-visibility: hidden;
+}
+
+.block:hover .face {
+    outline: 1px solid rgba(255, 0, 0, 1);
+}
+
+.ghost {
+    pointer-events: none;
+}
+
+.ghost .face {
+    pointer-events: none;
+    opacity: 0.6;
+    background-color: red !important;
+    -webkit-filter: brightness(1.5);
+}
