@@ -10,6 +10,7 @@ var brushes = [
     "Dirt",
 ];
 
+var $body  = jQuery(document.body);
 var $selector = jQuery(".brush");
 
 var $mode = jQuery(".mode");
@@ -27,13 +28,12 @@ for (var i = 0; i < brushes.length; i++) {
 
 $selector.on("change", function() {
     var value = jQuery(this).val();
-    var body = jQuery(document.body);
 
     if (value != "") {
         brush = value;
         mode = "addition";
 
-        body
+        $body
             .removeClass("inspection")
             .removeClass("subtraction")
             .addClass("addition");
@@ -41,7 +41,7 @@ $selector.on("change", function() {
         brush = null;
         mode = "inspection";
 
-        body
+        $body
             .removeClass("addition")
             .removeClass("subtraction")
             .addClass("inspection");
@@ -58,7 +58,7 @@ for (var x = 0; x < 10; x++) {
     }
 }
 
-jQuery(document.body).append(surface);
+$body.append(surface);
 
 function getSide(face) {
     var element = jQuery(face);
@@ -118,7 +118,7 @@ function getChangeForSide(side, x, y, z) {
     return [x, y, z];
 }
 
-jQuery(document.body).on("click", ".face", function(e) {
+$body.on("click", ".face", function(e) {
     var element = jQuery(this);
     var side = getSide(element);
 
@@ -148,7 +148,11 @@ jQuery(document.body).on("click", ".face", function(e) {
     }
 });
 
-jQuery(document.body).on("mouseenter", ".face", function(e) {
+$body.on("mousedown", ".face", function(e) {
+    e.stopPropogation();
+});
+
+$body.on("mouseenter", ".face", function(e) {
     if (ghost) {
         ghost.element.remove();
         ghost = null;
@@ -180,7 +184,7 @@ jQuery(document.body).on("mouseenter", ".face", function(e) {
     }
 });
 
-jQuery(document.body).on("mouseleave", ".face", function(e) {
+$body.on("mouseleave", ".face", function(e) {
     if (ghost) {
         ghost.element.remove();
         ghost = null;
@@ -188,20 +192,25 @@ jQuery(document.body).on("mouseleave", ".face", function(e) {
 });
 
 var cx = null;
+var cy = null;
 
-jQuery(document.body).on("mousedown", function(e) {
+$body.on("mousedown", function(e) {
     cx = e.clientX / 10;
+    cy = e.clientY / 10;
+
+    $body.addClass("dragging");
 });
 
-jQuery(document.body).on("mousemove", function(e) {
+$body.on("mousemove", function(e) {
     if (!cx) {
         return;
     }
 
-    var next = e.clientX / 10;
+    var nextX = e.clientX / 10;
+    var nextY = e.clientY / 10;
 
-    if (next !== cx) {
-        dx = (next.toInt() - cx.toInt()).toInt();
+    if (nextX !== cx) {
+        dx = (nextX.toInt() - cx.toInt()).toInt();
         deg = parseInt(jQuery(".rotate-z").val(), 10) - dx;
 
         if (deg > 360) {
@@ -214,16 +223,46 @@ jQuery(document.body).on("mousemove", function(e) {
 
         jQuery(".rotate-z").val(deg).change();
 
-        cx = next;
+        cx = nextX;
+    }
+
+    if (nextY !== cy) {
+        dy = (nextY.toInt() - cy.toInt()).toInt();
+        deg = parseInt(jQuery(".rotate-x").val(), 10) - dy;
+
+        if (deg > 360) {
+            deg -= 360;
+        }
+
+        if (deg < 0) {
+            deg += 360;
+        }
+
+        jQuery(".rotate-x").val(deg).change();
+
+        cy = nextY;
     }
 });
 
-jQuery(document.body).on("mouseup", function(e) {
+$body.on("mouseout", function(e) {
     cx = null;
+    cy = null;
+
+    $body.removeClass("dragging");
 });
 
-jQuery(document.body).on("click", function(e) {
+$body.on("mouseup", function(e) {
     cx = null;
+    cy = null;
+
+    $body.removeClass("dragging");
+});
+
+$body.on("click", function(e) {
+    cx = null;
+    cy = null;
+
+    $body.removeClass("dragging");
 });
 
 var sx = 60;
@@ -254,7 +293,7 @@ jQuery(".rotate-z").on("change", function(e) {
     });
 });
 
-jQuery(document.body).on("keydown", function(e) {
+$body.on("keydown", function(e) {
     if (e.altKey) {
         mode = "subtraction";
 
@@ -267,7 +306,7 @@ jQuery(document.body).on("keydown", function(e) {
     $mode.html(mode);
 });
 
-jQuery(document.body).on("keyup", function(e) {
+$body.on("keyup", function(e) {
     if (mode == "subtraction") {
         jQuery(this).removeClass("subtraction");
     }
