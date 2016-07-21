@@ -10,19 +10,20 @@
 }
 
 .addition .block:hover .face {
-    outline: 1px solid rgba(0, 255, 0, 1);
+    outline: 1px solid rgba(0, 255, 0, 0.5);
 }
 
 .subtraction .block:hover .face {
-    outline: 1px solid rgba(255, 0, 0, 1);
+    outline: 1px solid rgba(255, 0, 0, 0.5);
 }
 
 .ghost {
     pointer-events: none;
+    opacity: 0;
 }
 
-.subtraction .ghost {
-    opacity: 0;
+.addition .ghost {
+    opacity: 1;
 }
 
 .ghost .face {

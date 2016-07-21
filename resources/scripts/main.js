@@ -1,10 +1,58 @@
 var size = 64;
-
 var surface = jQuery("<div />").addClass("entity").addClass("surface");
+
+var mode = "inspection";
+var brush = null;
+var ghost = null;
+
+var brushes = [
+    "Cobblestone",
+    "Dirt",
+];
+
+var $selector = jQuery(".brush");
+
+var $mode = jQuery(".mode");
+$mode.html(mode);
+
+$selector.append("<option value=''>None</option>");
+
+for (var i = 0; i < brushes.length; i++) {
+    var $option = jQuery("<option />");
+    $option.attr("value", brushes[i]);
+    $option.html(brushes[i]);
+
+    $selector.append($option);
+}
+
+$selector.on("change", function() {
+    var value = jQuery(this).val();
+    var body = jQuery(document.body);
+
+    if (value != "") {
+        brush = value;
+        mode = "addition";
+
+        body
+            .removeClass("inspection")
+            .removeClass("subtraction")
+            .addClass("addition");
+    } else {
+        brush = null;
+        mode = "inspection";
+
+        body
+            .removeClass("addition")
+            .removeClass("subtraction")
+            .addClass("inspection");
+    }
+
+    $mode.html(mode);
+});
 
 for (var x = 0; x < 10; x++) {
     for (var y = 0; y < 10; y++) {
-        var block = new CobblestoneBlock(size, size, x, y, -1, 0, 0, 0, 0.99);
+        var block = new Block.Cobblestone(size, size, x, y, -1, 0, 0, 0, 0.99);
 
         surface.append(block.element);
     }
@@ -84,22 +132,21 @@ jQuery(document.body).on("click", ".face", function(e) {
         return;
     }
 
-    if (subtraction) {
-        previous.element.remove();
-        previous = null;
-        return;
+    if (mode == "addition") {
+        var changes = getChangeForSide(side, previous.x, previous.y, previous.z);
+        var x = changes[0];
+        var y = changes[1];
+        var z = changes[2];
+
+        var next = new Block[brush](size, size, x, y, z, 0, 0, 0, 0.99);
+        surface.append(next.element);
     }
 
-    var changes = getChangeForSide(side, previous.x, previous.y, previous.z);
-    var x = changes[0];
-    var y = changes[1];
-    var z = changes[2];
-
-    var next = new CobblestoneBlock(size, size, x, y, z, 0, 0, 0, 0.99);
-    surface.append(next.element);
+    if (mode == "subtraction") {
+        previous.element.remove();
+        previous = null;
+    }
 });
-
-var ghost = null;
 
 jQuery(document.body).on("mouseenter", ".face", function(e) {
     if (ghost) {
@@ -120,15 +167,17 @@ jQuery(document.body).on("mouseenter", ".face", function(e) {
         return;
     }
 
-    var changes = getChangeForSide(side, previous.x, previous.y, previous.z);
-    var x = changes[0];
-    var y = changes[1];
-    var z = changes[2];
+    if (mode == "addition") {
+        var changes = getChangeForSide(side, previous.x, previous.y, previous.z);
+        var x = changes[0];
+        var y = changes[1];
+        var z = changes[2];
 
-    var block = new CobblestoneBlock(size, size, x, y, z, 0, 0, 0, 0.99);
-    surface.append(block.element.addClass("ghost"));
+        var block = new Block[brush](size, size, x, y, z, 0, 0, 0, 0.99);
+        surface.append(block.element.addClass("ghost"));
 
-    ghost = block;
+        ghost = block;
+    }
 });
 
 jQuery(document.body).on("mouseleave", ".face", function(e) {
@@ -205,16 +254,31 @@ jQuery(".rotate-z").on("change", function(e) {
     });
 });
 
-var subtraction = false;
-
 jQuery(document.body).on("keydown", function(e) {
     if (e.altKey) {
-        subtraction = true;
-        jQuery(this).removeClass("addition").addClass("subtraction");
+        mode = "subtraction";
+
+        jQuery(this)
+            .removeClass("inspection")
+            .removeClass("addition")
+            .addClass("subtraction");
     }
+
+    $mode.html(mode);
 });
 
 jQuery(document.body).on("keyup", function(e) {
-    subtraction = false;
-    jQuery(this).removeClass("subtraction").addClass("addition");
+    if (mode == "subtraction") {
+        jQuery(this).removeClass("subtraction");
+    }
+
+    if (brush) {
+        mode = "addition";
+        jQuery(this).addClass("addition");
+    } else {
+        mode = "inspection";
+        jQuery(this).addClass("inspection");
+    }
+
+    $mode.html(mode);
 });

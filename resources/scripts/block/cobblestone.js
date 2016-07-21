@@ -1,4 +1,4 @@
-class CobblestoneBlock extends Block {
+class Cobblestone extends Block {
     getBackgroundFor(type) {
         return "url(" + this.getTextures().random() + ")";
     }
@@ -19,3 +19,5 @@ class CobblestoneBlock extends Block {
         ];
     }
 }
+
+Block.Cobblestone = Cobblestone;
