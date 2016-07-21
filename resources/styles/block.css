@@ -9,12 +9,20 @@
     backface-visibility: hidden;
 }
 
-.block:hover .face {
+.addition .block:hover .face {
+    outline: 1px solid rgba(0, 255, 0, 1);
+}
+
+.subtraction .block:hover .face {
     outline: 1px solid rgba(255, 0, 0, 1);
 }
 
 .ghost {
     pointer-events: none;
+}
+
+.subtraction .ghost {
+    opacity: 0;
 }
 
 .ghost .face {

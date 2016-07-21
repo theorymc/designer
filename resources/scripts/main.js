@@ -1,6 +1,6 @@
 var size = 64;
 
-var surface = $("<div />").addClass("entity").addClass("surface");
+var surface = jQuery("<div />").addClass("entity").addClass("surface");
 
 for (var x = 0; x < 10; x++) {
     for (var y = 0; y < 10; y++) {
@@ -10,7 +10,7 @@ for (var x = 0; x < 10; x++) {
     }
 }
 
-$(document.body).append(surface);
+jQuery(document.body).append(surface);
 
 function getSide(face) {
     var element = jQuery(face);
@@ -70,7 +70,7 @@ function getChangeForSide(side, x, y, z) {
     return [x, y, z];
 }
 
-$(document.body).on("click", ".face", function(e) {
+jQuery(document.body).on("click", ".face", function(e) {
     var element = jQuery(this);
     var side = getSide(element);
 
@@ -81,6 +81,12 @@ $(document.body).on("click", ".face", function(e) {
     var previous = element.closest(".block").data("block");
 
     if (!previous) {
+        return;
+    }
+
+    if (subtraction) {
+        previous.element.remove();
+        previous = null;
         return;
     }
 
@@ -95,7 +101,7 @@ $(document.body).on("click", ".face", function(e) {
 
 var ghost = null;
 
-$(document.body).on("mouseenter", ".face", function(e) {
+jQuery(document.body).on("mouseenter", ".face", function(e) {
     if (ghost) {
         ghost.element.remove();
         ghost = null;
@@ -125,7 +131,7 @@ $(document.body).on("mouseenter", ".face", function(e) {
     ghost = block;
 });
 
-$(document.body).on("mouseleave", ".face", function(e) {
+jQuery(document.body).on("mouseleave", ".face", function(e) {
     if (ghost) {
         ghost.element.remove();
         ghost = null;
@@ -134,11 +140,11 @@ $(document.body).on("mouseleave", ".face", function(e) {
 
 var cx = null;
 
-$(document.body).on("mousedown", function(e) {
+jQuery(document.body).on("mousedown", function(e) {
     cx = e.clientX / 10;
 });
 
-$(document.body).on("mousemove", function(e) {
+jQuery(document.body).on("mousemove", function(e) {
     if (!cx) {
         return;
     }
@@ -147,7 +153,7 @@ $(document.body).on("mousemove", function(e) {
 
     if (next !== cx) {
         dx = (next.toInt() - cx.toInt()).toInt();
-        deg = parseInt($(".rotate-z").val(), 10) - dx;
+        deg = parseInt(jQuery(".rotate-z").val(), 10) - dx;
 
         if (deg > 360) {
             deg -= 360;
@@ -157,17 +163,17 @@ $(document.body).on("mousemove", function(e) {
             deg += 360;
         }
 
-        $(".rotate-z").val(deg).change();
+        jQuery(".rotate-z").val(deg).change();
 
         cx = next;
     }
 });
 
-$(document.body).on("mouseup", function(e) {
+jQuery(document.body).on("mouseup", function(e) {
     cx = null;
 });
 
-$(document.body).on("click", function(e) {
+jQuery(document.body).on("click", function(e) {
     cx = null;
 });
 
@@ -175,7 +181,7 @@ var sx = 60;
 var sy = 0;
 var sz = 60;
 
-$(".rotate-x").on("change", function(e) {
+jQuery(".rotate-x").on("change", function(e) {
     sx = this.value;
 
     surface.css({
@@ -183,7 +189,7 @@ $(".rotate-x").on("change", function(e) {
     });
 });
 
-$(".rotate-y").on("change", function(e) {
+jQuery(".rotate-y").on("change", function(e) {
     sy = this.value;
 
     surface.css({
@@ -191,10 +197,24 @@ $(".rotate-y").on("change", function(e) {
     });
 });
 
-$(".rotate-z").on("change", function(e) {
+jQuery(".rotate-z").on("change", function(e) {
     sz = this.value;
 
     surface.css({
         "transform": "rotateX(" + sx + "deg) rotateY(" + sy + "deg) rotateZ(" + sz + "deg)"
     });
+});
+
+var subtraction = false;
+
+jQuery(document.body).on("keydown", function(e) {
+    if (e.altKey) {
+        subtraction = true;
+        jQuery(this).removeClass("addition").addClass("subtraction");
+    }
+});
+
+jQuery(document.body).on("keyup", function(e) {
+    subtraction = false;
+    jQuery(this).removeClass("subtraction").addClass("addition");
 });

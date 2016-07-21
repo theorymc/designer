@@ -19,7 +19,7 @@ class Block extends Entity {
 
     createElementFace(background, additional, x, y, z, rx, ry, rz, scale) {
         var size = this.width;
-        var face = $("<div />").addClass("entity").addClass("face");
+        var face = jQuery("<div />").addClass("entity").addClass("face");
 
         if (additional) {
             face.addClass(additional);
