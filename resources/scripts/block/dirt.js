@@ -7,6 +7,10 @@ class Dirt extends Block {
         return "url(" + this.getTextures().side.random() + ")";
     }
 
+    getName() {
+        return "dirt";
+    }
+
     getTextures() {
         return {
             "top": [

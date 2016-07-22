@@ -1,0 +1,8 @@
+{
+    "require": {
+        "theory/builder": "^0.0.1",
+        "icicleio/http": "dev-master"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

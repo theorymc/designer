@@ -1,4 +1,12 @@
 class Block extends Entity {
+    getStates() {
+        return 1;
+    }
+
+    getName() {
+        throw new Error("Not defined!");
+    }
+
     createElement() {
         var element = super.createElement();
 
@@ -26,7 +34,7 @@ class Block extends Entity {
         }
 
         face.css({
-            "background-image": background,
+            "background": background,
             "width": size + "px",
             "height": size + "px",
             "transform": "translateX(" + x.toInt() + "px) translateY(" + y.toInt() + "px) translateZ(" + z.toInt() + "px) rotateX(" + rx.toInt() + "deg) rotateY(" + ry.toInt() + "deg) rotateZ(" + rz.toInt() + "deg) scale(" + scale + ")"

@@ -3,6 +3,10 @@ class Cobblestone extends Block {
         return "url(" + this.getTextures().random() + ")";
     }
 
+    getName() {
+        return "cobblestone";
+    }
+
     getTextures() {
         return [
             "resources/textures/64x64/cobblestone-1.png",

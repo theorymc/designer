@@ -1,5 +1,5 @@
 class Entity {
-    constructor(width, height, x, y, z, rx, ry, rz, scale) {
+    constructor(width, height, x, y, z, rx, ry, rz, scale, state) {
         this.width = width;
         this.height = height;
         this.x = x;
@@ -10,8 +10,22 @@ class Entity {
         this.rz = rz;
         this.scale = scale;
 
+        var states = this.getStates();
+
+        while (state >= states) {
+            state -= states;
+        }
+
+        state = Math.max(0, state);
+
+        this.state = state;
+
         this.element = this.createElement();
         this.update();
+    }
+
+    getStates() {
+        throw new Error("Not defined!");
     }
 
     createElement() {
